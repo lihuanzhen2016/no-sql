@@ -1,0 +1,47 @@
+数据更新
+db.class1.drop()
+一：添加文档
+1、语法：db.collection.insert({document})
+2、插入1条文档
+db.class1.insert({name:"tom"})
+3、插入1条复杂文档
+db.class1.insert({_id:1,name:"tom",age:NumberInt(20)})
+4、插入变量
+var doc1={name:"lhz",address:{provice:"hebei"}}
+db.class1.insert(doc1)
+5、插入多条文档，注意[]的使用
+db.class1.insert([{name:"tom"},{name:"jerry"}])
+6、bulk批量处理（插入、删除、更新）（顺序和并行）
+var bulk=db.class1.initializeUnorderedBulkOp()
+bulk.insert({name:"aa"})
+bulk.insert({name:"bb"})
+bulk.insert({name:"cc"})
+bulk.find( { item: null } ).update( { $set: { item: "TBD" } } );
+bulk.find( { status: "D" } ).remove();
+bulk.execute()
+7、save
+db.class1.save({_id:1,name:"tom"})
+使用save，如果文档不存在，会添加一条文档，理解为调用insert函数
+db.class1.save({_id:1,name:"jerry"})
+使用save，如果文档存在，就会修改文档,理解为调用update函数
+8、update，如果符合查询条件的文档不存在，则添加文档，注意参数{upsert:true}
+db.class1.update({_id:2},{name:"jerry"},{upsert:true})
+9、mongoDB提供了insertOne，insertMany插入文档
+db.collection.insertOne() 	
+db.collection.insertMany()
+db.class1.insertOne({name:"tom"})正确
+db.class1.insertOne({name:"tom"},{name:"jerry"})只会添加1条
+db.class1.insertOne([{name:"tom"},{name:"jerry"}])错误
+db.class1.insertMany([{name:"tom"},{name:"jerry"}])
+二：删除文档
+1、删除集合中的所有文档
+db.class1.remove({})
+2、删除符合条件的所有文档
+db.class1.insert({_id:1,name:"aa"})
+db.class1.insert({_id:2,name:"aa"})
+db.class1.insert({_id:3,name:"aa"})
+
+db.class1.remove({name:"aa"})
+2、删除符合条件的第一条文档
+db.class1.remove({name:"aa"},true)
+
