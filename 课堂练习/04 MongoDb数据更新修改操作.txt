@@ -1,0 +1,42 @@
+数据更新-update
+db.class1.drop()
+db.goods.insert({_id:1,name:"牛奶",price:20})
+db.goods.insert({_id:2,name:"苹果",price:30})
+db.goods.insert({_id:3,name:"桔子",price:40})
+
+1、替换文档(不使用操作符)
+db.class1.update({_id:1},{age:20,status:"accept"})
+2、修改指定的字段值{$set:{field:newValue}}，
+如果没有字段，就会添加字段
+db.class1.update({_id:1},{$set:{name:"tom"}})
+db.class1.update({_id:1},{$set:{name:"tom1"}})
+3、使用$set可以增加字段
+4、删除指定字段{$unset:{field:newValue}}，
+db.class1.update({_id:1},{$unset:{name:"tom1"}})
+5、修改字段{$rename:{"field":"newFiled"}}，注意使用双引号
+db.class1.update({_id:1},{$rename:{"age":"newname"}})
+6、$inc 修改指定的字段值 +-数值，加5块钱
+db.goods.update({_id:1},{$inc:{price:5}})
+6、$mul 修改指定的字段值 *数值，整型或浮点型
+db.goods.update({_id:1},{$mul:{price:0.9}})
+7、多条记录同时做更新，需要增加参数{multi:true}
+db.goods.update({},{$inc:{price:5}},{multi:true})
+8、$min给定的值小于字段的原先的值，就会被修改
+ $max给定的值大于字段的原先的值，就会被修改
+db.goods.update({_id:1},{$min:{price:10}})
+db.goods.update({_id:1},{$max:{price:100}})
+
+max
+所有文档，价格小于100的都修改为100
+员工工资低于5000的，都修改为5000
+db.goods.update({},{$max:{price:110}},{multi:true})
+min
+员工工资高于8000的，都修改为8000
+9、$currentDate的用法，修改日期
+db.goods.update({_id:1},{$currentDate:{time1:true,time2:{$type:"timestamp"}}})
+10、修改内嵌文档
+db.class1.insert({_id:1,name:"tom",address:{provice:"hebei",city:"shijiazhuang"}})
+替换子文档
+db.class1.update({_id:1},{$set:{address:{provice:"jiangsu",city:"changsha"}}})
+修改子文档的字段的值，用.连接，注意加""
+db.class1.update({_id:1},{$set:{"address.provice":"hunan"}})
