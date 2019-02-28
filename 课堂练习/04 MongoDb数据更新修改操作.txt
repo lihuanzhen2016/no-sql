@@ -3,8 +3,13 @@ db.class1.drop()
 db.goods.insert({_id:1,name:"牛奶",price:20})
 db.goods.insert({_id:2,name:"苹果",price:30})
 db.goods.insert({_id:3,name:"桔子",price:40})
+掌握八种操作符的使用
+$set $unset $rename $inc 
+$mul $currentDate $min $max
+{multi:true}
+需要对键值加"" 的情形：1、$rename 2、子文档的指定字段进行修改
 
-1、替换文档(不使用操作符)
+1、替换文档(不使用操作符$set)
 db.class1.update({_id:1},{age:20,status:"accept"})
 2、修改指定的字段值{$set:{field:newValue}}，
 如果没有字段，就会添加字段
@@ -20,6 +25,7 @@ db.goods.update({_id:1},{$inc:{price:5}})
 6、$mul 修改指定的字段值 *数值，整型或浮点型
 db.goods.update({_id:1},{$mul:{price:0.9}})
 7、多条记录同时做更新，需要增加参数{multi:true}
+db.goods.update({},{$inc:{price:5}})只对第一条进行修改
 db.goods.update({},{$inc:{price:5}},{multi:true})
 8、$min给定的值小于字段的原先的值，就会被修改
  $max给定的值大于字段的原先的值，就会被修改
@@ -40,3 +46,60 @@ db.class1.insert({_id:1,name:"tom",address:{provice:"hebei",city:"shijiazhuang"}
 db.class1.update({_id:1},{$set:{address:{provice:"jiangsu",city:"changsha"}}})
 修改子文档的字段的值，用.连接，注意加""
 db.class1.update({_id:1},{$set:{"address.provice":"hunan"}})
+
+11、数组元素的操作符和修改器的使用
+$  $push  $pop $addToSet $pull $pullAll
+1) $
+db.c1.insert({_id:1,scores:[30,40,50]})
+db.c1.insert({_id:2,scores:[]})
+db.c1.insert({_id:3,scores:[20,30,50]})
+db.c1.insert({_id:4,scores:[20,30,40,50,60]})
+db.c1.update({scores:30},{scores.$:33})
+db.c1.update({scores:30},{scores.$:33})
+2)$push    {$push:{array:value}} 向数组末尾追加一个元素
+db.c1.update({_id:1},{$push:{scores:60}})
+3）$pop   {$pop:{array:-1|1}  -1从头部删除,1从尾部删除
+db.c1.update({_id:1},{$pop:{scores:-1}})
+db.c1.update({_id:1},{$pop:{scores:1}})
+4）$addToSet    {$addToSet:{array:value}} 向数组末尾追加一个元素，如果已经存在同样的元素，不会添加
+db.c1.update({_id:1},{$addToSet :{scores:50}})
+5）$pull 删除指定的一个元素  {$pull:{array:value}} 
+db.c1.update({_id:3},{$pull:{scores:30}})
+6）$pullAll 删除多个元素 参数是数组 {$pullAll:{array:[v1,v2,v3,----]}}
+db.c1.update({_id:4},{$pullAll:{scores:[30,40,50]}})
+7)修改器的使用$each $slice $position $sort与push结合使用
+$each用于添加多个元素
+{$push:{array:{$each:[v1,v2,v3，-----]}}}
+db.c1.update({_id:1},{$push:{scores:{$each:[1,2,3,4,5]}}})
+$slice:用于数组中添加元素后，取子集的个数
+{$push:{array:{$each:[v1,v2,v3，-----],$slice:n}}}
+db.c1.update({_id:1},{$push:{scores:{$each:[11,12,13,14,15],$slice:2}}})
+$position向数组指定的位置追加元素(从0开始计算)
+{$push:{array:{$each:[v1,v2,v3，-----],$position:n}}}
+db.c1.update({_id:1},{$push:{scores:{$each:[11,12,13,14,15],$position:1}}})
+$sort更新后，对数组中的元素进行排序
+简单的数组元素 {$push:{array:{$each:[v1,v2,v3，-----],$sort:-1|1}}}
+db.c1.update({_id:1},{$push:{scores:{$each:[11,12,13,14,15],$sort:1}}})
+db.c1.insert({_id:5,scores:[{"科目":"数学","成绩":50},{"科目":"语文","成绩":60},{"科目":"英语","成绩":40}]})
+复杂的数组元素{$push:{array:{$each:[v1,v2,v3，-----],$sort:{filed:-1|1}}}}
+db.c1.update({_id:5},{$push:{scores:{$each:[{"科目":"数学1","成绩":20},{"科目":"语文1","成绩":70}],$sort:{"成绩":-1}}}})
+
+作用：在数组的第一个位置，添加元素，取5个元素子集，倒序存储
+db.c1.update({_id:1},{$push:{scores:{$each:[11,12,13,14,15],$slice:5,$position:0,$sort:-1}}})
+
+写安全级别设置，mongoDB默认是确认式写入
+db.products.insert(
+    { item: "envelopes", qty : 100, type: "Clasp" },
+    { writeConcern: { w: 0, wtimeout: 5000 } }
+)
+db.products.insert(
+    { item: "envelopes", qty : 100, type: "Clasp" },
+    { writeConcern: { w: 1, wtimeout: 5000 } }
+)
+
+db.products.insert(
+    { item: "envelopes", qty : 100, type: "Clasp" },
+    { writeConcern: { w: 1, j:true,wtimeout: 5000 } }
+)
+
+
