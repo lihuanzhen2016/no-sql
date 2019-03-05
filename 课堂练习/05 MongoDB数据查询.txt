@@ -1,0 +1,114 @@
+for(i=0;i<10;i++){
+db.c1.insert({_id:i,name:"user"+i,age:20+i})
+}
+
+db.c1.insert({_id:12,name:"rom",age:20})
+db.c1.insert({_id:13,name:"rom1",age:null})
+1、复合条件的查询，一般用,分割
+db.c1.find({_id:1,name:"qq"})
+2、字段映射,默认_id是显示的
+db.c1.find({},{name:1})
+db.c1.find({},{_id:0,name:1})
+db.c1.find({},{name:0})
+
+db.c1.find({},{name:0,age:1}) //错误
+//查询前三条文档，从第一条开始
+db.c1.find({},{},3)或者
+db.c1.find().limit(3)
+//从第六条开始显示
+db.c1.find({},{},,5)//错误
+db.c1.find().skip( 5 )//正确
+查询第3-5条的文档
+db.c1.find({},{},3,2)等价于db.c1.find().limit(3).skip(2)
+3、查询操作符的使用
+1）比较查询操作符 $eq $ne $gt $lt $in $nin 语法{field:{$operator:value}}
+$in $nin 的值是数组
+db.c1.find({age:20})等价于db.c1.find({age:{$eq:20}})
+查询年龄大于等于20岁的文档
+db.c1.find({age:{$gte:20}})
+查询23到25之间的文档
+db.c1.find({age:{$in:[23,24,25]}})等价于$gte  $lte
+db.c1.find({age:{$gte:23,$lte:25}})
+
+2）逻辑操作符 
+$and（多个条件都满足） $or（至少满足一个条件） $nor（多个条件都不满足）的值都是数组，
+$not  值是一个表达式
+$and有显示和隐式 
+db.c1.find({_id:1,name:"qq"})
+等价于db.c1.find({$and:[{_id:1},{name:"qq"}]})
+
+查询age小于23，age 大于27的文档
+for(i=0;i<10;i++){
+db.c1.insert({_id:i,name:"user"+i,age:20+i})
+}
+db.c1.find({age:{$not:{$gte:23,$lte:27}}})
+ //这种方式会把age 为null的都显示出来
+ 
+ db.c1.find({$or:[{age:{$lt:23}},{age:{$gt:27}}]})//正确
+元素操作符
+db.c1.find({major:{$exists:true}})
+查询存在字段major的文档
+db.c1.find({age:{$type:1}})
+查询age的值是double类型的文档
+
+$where 参数是js字符串，用于同一条文档，字段之间的比较
+db.fruit.insert({apple:10,pear:20})
+db.fruit.insert({apple:10,pear:10})
+db.fruit.find({$where:"this.apple==this.pear"})
+db.fruit.find({$where:"this.apple>this.pear"})
+内嵌文档的查询
+1）完整的子文档的匹配，内容和顺序都必须一致
+db.class1.find({address:{
+		provice:"Hebei",
+		city:"shijiazhuang"
+	}})
+2)子文档某个字段的匹配方式，注意""
+	db.class1.find({"address.provice":"Hebei"})
+数组查询
+1）
+数组元素存储基本数据类型
+db.query_array.find({scores:100}})
+查询数组scores包含100的文档
+db.query_array.find({scores:{$lt:60}})
+查询数组scores包含小于60的文档
+涉及到位置索引（数组.索引位置）
+db.query_array.find({"scores.1":{$lt:90}})
+查询数组scores第二个值小于90的文档
+db.query_array.find({"scores.成绩":{$lt:60}})	
+db.query_array.find({"scores.1.成绩":{$gt:90}})
+查询第二个学期成绩大于90的文档
+2）数组查询操作符
+$all 参数是数组 用于查询数组字段包含指定的所有元素的文档
+db.query_array.find()
+db.query_array.find({scores:{$all:[98,90]}})
+$elemMatch 数组元素一个值同时满足的多条件查询
+db.query_array.find({scores:{$elemMatch:{$gt:60,$lt:70}}})
+查询有一个分数在60~70之间的文档
+db.query_array.find({scores:{$gt:60,$lt:70}})
+查询数组元素有大于60，有元素小于70，不限制同一个元素的文档
+db.query_array.find({scores:{$size:3}})
+$显示满足条件的第一个数组元素：注意：查询条件必须是数组
+db.query_array.find({},{"scores.$":1}) 错误
+db.query_array.find({scores:{$gt:90}},{"scores.$":1})正确
+
+db.query_array.find({},{scores:{$slice:2}})//显示数组的子集
+db.query_array.find({},{scores:{$slice:[-1,2]}})
+
+模糊查询 
+1)$regex与正则表达式区别
+2) i（忽略大小写） s(忽略.*的原意) m（换行符）
+x（忽略pattern转义字符）
+db.calss1.insert({name:"lisan"})
+db.calss1.insert({name:"LIzhangsan"})
+db.calss1.insert({name:"zhangsanli"})
+db.class1.find({name:/^li/i})
+等价于
+db.class1.find({name:{$regex:/^li/i,$options:"i"}})
+
+db.class1.find({description:{$regex:/^S/}})
+
+db.class1.find({description:{$regex:/^S/,$options:"im"}})
+
+	
+
+
