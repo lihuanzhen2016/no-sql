@@ -1,0 +1,100 @@
+Oracle mongoDB 使用B-树
+SqlServer MySq1使用的是B+树
+单个字段的索引
+db.c1.find({},{name:1,age:1}).explain("executionStats")
+db.c1.insert({_id:1,name:"tom",age:20})
+db.c1.createIndex({name:1,age:1})//普通字段
+db.c1.createIndex({address:1})//内嵌文档
+db.c1.createIndex({"address.city":-1})//内嵌文档的字段
+复合字段的索引
+db.c1.createIndex({name:1,age:1})
+db.c1.find()sort({name:1,age:1})
+db.c1.find()sort({name:-1,age:-1})
+1）排序的字段与创建索引字段排序一致，或者完全相反，会使用索引
+2）前缀匹配,查找条件包含索引中的第一个字段
+创建索引
+{ "item": 1, "location": 1, "stock": 1 }
+如果查询条件是以下三种，就会使用索引
+   item ，   item and location，item  and  location  and  stock 
+   
+多键索引：针对数组元素
+db.a1.insert({a:1,b:[1,2,3],c:[4,5,6]})
+db.a1.createIndex({b:1})成功的
+db.a1.createIndex({c:1})成功的
+db.a1.createIndex({b:1,c:1})失败的，不能对两个数组创建复合的多键索引，但是可以分开创建
+   
+
+在多键索引中，不建议设置 unique:true，如果设置，下面操作是失败的
+db.a1.insert({a:1,b:[1,2,3],c:[4,5,6]})
+db.a1.createIndex({c:"hashed"}) 失败，不能对数组创建哈希索引
+
+db.a1.createIndex({a:1},{unique:true})
+针对字段A创建了唯一索引，如果添加重复的A记录，会提示失败，保证A的唯一性
+针对多键索引，不建议设置唯一属性
+
+
+
+db.b1.insert({a:1,b:2})
+db.b1.insert({a:2,b:2})
+db.b1.insert({a:3,b:2})
+
+db.b1.createIndex({a:1,b:1},{unique:true}) 复合索引设置唯一属性，单个字段可以重复
+复合字段组合时不能重复的
+
+db.collection.insert({ _id: 2, x: 1 } );
+
+patial index 是sparse index的进阶
+针对部分符合条件的文档建立索引，而不是所有的文档，这样查询时，查询条件这个条件范围
+会使用索引，相反，就会全表扫描
+
+for(i=0;i<100;i++){
+db.c1.insert({_id:i,name:"user"+i,age:20+i})
+}
+db.c1.createIndex({age:1})
+db.c1.createIndex({age:1},{partialFilterExpression:{age:{$gt:25}}})
+
+db.c1.find({age:{$gt:25}}).explain() 使用索引
+db.c1.find({age:{$lt:25}}).explain()
+
+
+唯一索引和部分索引结合使用，唯一的限定只对满足条件的值，不是完全的限定
+db.c1.createIndex({age:1},{unique:true,partialFilterExpression:{age:{$gt:25}}})
+db.c1.insert({name:"aaa",age:27})失败
+db.c1.insert({name:"aaa",age:20})成功
+
+TTL属性只针对Date类型的值，或者数组元素时Date的值才有效
+db.d1.insert({name:"tom",date1:new Date()})
+db.d1.insert({name:"tom",date1:123})
+db.d1.insert({name:"tom1",date1:new Date()})
+var d1=new Date()
+db.d1.insert({name:"tom",date1:[d1,new Date()]})
+db.d1.createIndex({date1:1},{expireAfterSeconds:10})
+
+索引类型：单一字段的索引，复合索引，多键索引，哈希索引
+索引类型：unique  sparse  expireAfterSeconds  partialFilterExpression
+collation
+
+db.a1.createIndex({u_name:1},{name:"demo_name"})
+
+查询解释器
+for(i=0;i<100;i++){
+db.c1.insert({_id:i,name:"user"+i,age:20+i})
+}
+db.c1.createIndex({age:1})
+db.c1.createIndex({age:1,name:1})
+db.c1.find().explain()
+db.c1.find({age:25}).explain()
+db.c1.find({age:25}).explain("executionStats")
+db.c1.find({name:"user25"}).explain("executionStats")
+db.c1.find({age:25}).explain("allPlansExecution")
+
+db.c1.find({age:"user25"}).hint("age_1").explain("executionStats")
+
+
+
+
+
+
+
+
+
