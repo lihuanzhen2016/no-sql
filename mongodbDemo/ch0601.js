@@ -1,7 +1,7 @@
 dbservice=connect("localhost:27017");
 db=dbservice.getSiblingDB("student");
 db.index_single.drop();
-for(i=0;i<10000;i++){
+for(i=0;i<100000;i++){
 	
 	db.index_single.insert({index:i,name:"user"+i})
 }

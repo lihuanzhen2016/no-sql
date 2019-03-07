@@ -1,0 +1,56 @@
+如果要使用全文索引进行查询，需要借助$text $search两个操作符
+
+db.articles.insert({_id:1,subject:"coffee",author:"tom",views:50})
+db.articles.insert({_id:2,subject:"Coffee Shopping",author:"tom1",views:50})
+db.articles.insert({_id:3,subject:"Baking a cake",author:"jerry",views:50})
+db.articles.insert({_id:4,subject:"baking",author:"joe",views:50})
+db.articles.insert({_id:5,subject:"cream and coffee",author:"tom",views:50})
+db.articles.insert({_id:6,subject:"coffee 1",author:"tom",views:50})
+db.articles.insert({_id:7,subject:"coffee",author:"tom",views:50})
+db.articles.insert({_id:8,subject:"coffee shop",author:"tom",views:50})
+db.articles.insert({_id:9,subject:"Coffee shop",author:"tom",views:50})
+
+
+db.articles.createIndex({author:1,subject:"text"})
+db.a1.find().sort({age:1,name:1})
+db.articles.find({$text:{$search:"coffee"}}).sort(subject:1)
+db.articles.createIndex({subject:"text"})
+db.articles.find({subject:/coffe/i}) 不使用索引
+db.articles.find({$text:{$search:"coffee"}}) //通过explain()函数获得，会使用索引进行查询
+
+db.articles.find({$text:{$search:"coffee cake"}}) 
+//coffee cake存在任何一种的都会查询出来，空格分隔
+db.articles.find({$text:{$search:"coffee -shop"}})
+//存在coffe并且不存在shop的
+db.articles.find({$text:{$search:"\"a cake\""}})
+//查询包含短句的，需要加转义字符""
+db.articles.find({$text:{$search:"coffee",$caseSensitive:true}})
+//大小写敏感
+
+2d平面索引
+
+db.place.insert({location:{type:"Point",coordinates:[-73.97,40.77]}})
+db.place.insert({location:{type:"Point",coordinates:[-83.87,40.87]}})
+db.place.createIndex({"location.coordinates":"2d"})
+
+db.place.find({"location.coordinates":{$geoWithin:{$box:[[-100,-100],[100,100]]}}})
+db.place.find({"location.coordinates":{$geoWithin:{$center:[[-73,40],10]}}})
+db.place.find({"location.coordinates":{$geoWithin:{$polygon:[[-100,-100],[3,6],[6,0]]}}})
+
+
+db.places1.insert(
+   {
+      loc : { type: "Point", coordinates: [ -73.97, 40.77 ] },
+      name: "Central Park",
+      category : "Parks"
+   }
+)
+
+db.places2.insert(
+   {
+      loc : { type: "Point", coordinates: [ -73.88, 40.78 ] },
+      name: "La Guardia Airport",
+      category : "Airport"
+   }
+)
+
