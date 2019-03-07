@@ -1,0 +1,28 @@
+权限设置 DBA
+1、创建用户
+db.createUser(
+{ user:"s1",pwd:"123456", 
+roles: [{ role: "read", db: "student"}]})
+
+2、权限验证生效
+修改MongoDB安装目录中的配置文件 bin/mongod.cfg，重启服务
+security:
+  authorization: enabled
+注意：authorization前面要有两个英文空格，否则会导致服务重启失败
+
+3、授权用户登录
+先使用use student切换到目标数据库，再登录，否则会登录失败
+db.auth("s1","123456")
+
+需求：
+1、针对数据库test创建用户test1，具有读写的权限
+db.createUser({user:"test1",pwd:"test1",
+roles: [{ role: "readWrite", db: "test"}]})
+2、针对test1用户授权，使其对数据库student具有只读权限
+
+db.grantRolesToUser(
+   "test1",
+   [ { role: "read", db: "student" } ],
+   { w: "majority" , wtimeout: 4000 }
+)
+
