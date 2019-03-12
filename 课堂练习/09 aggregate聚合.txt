@@ -1,0 +1,138 @@
+﻿1、$project 指定文档显示的方式
+
+db.test0312.aggregate([{$project:{_id:0}}])相当于
+db.test0312.find({},{_id:0})
+
+db.test0312.aggregate([{$project:{_id:0,
+newTitle:"$title" //为title列起个别名newTitle
+}}])
+结果只显示newTitle这一列
+
+db.test0312.aggregate([{$project:{_id:0,
+newTitle:"$title" ,Copy:{$add:["$copies",10]}
+}}]) 把copies加10显示出来
+如果需要调用原字段的值，需要$field
+
+db.test0312.aggregate([{$project:{_id:0,arr:["$author","$copies"]}}])
+
+$concat用于连接字符串（参数必须是字符串类型数组）
+db.test0312.aggregate([{$project:{_id:0,acopy:{$concat:["$author","-","$title"]}}}])
+
+
+find().pretty()格式化显示文档
+总结：$project  相当于find第二个参数
+1）规定哪些显示，哪些不显示；
+2）为字段取别名；
+3）为value值做操作（数字类型+-*/，字符串类型：合并两列，取某一列的子串）
+2、
+$match相当于find第一个参数，用于过滤文档
+db.test0312.aggregate([
+{$match:{copies:{$gt:5}}},
+{$project:{_id:false}}
+])
+
+$match限制了显示的行数,$project限制了显示的列，以及每一列的内容
+3、
+for(i=1;i<11;i++){db.a11.insert({_id:i,name:"user"+i})}
+
+db.a11.find().limit(3).skip(2)与db.a11.find().skip(2).limit(3)结果是相同的
+跳过前两条，显示3条文档
+
+db.a11.aggregate({$limit:3})
+db.a11.aggregate({$skip:2})
+注意：以下两种显示是不同的
+db.a11.aggregate([{$skip:2},{$limit:3}])与db.a11.find().limit(3).skip(2)是相同的
+注意管道先后顺序的作用，先跳过前2条，再显示3条
+如果limit在skip之后优化器会做下面的转化
+db.a11.aggregate([{$limit:5},{$skip:2}])
+
+
+db.a11.aggregate([{$skip:2},{$limit:3},{$sort:{_id:-1}}])
+
+$limit $skip $sort的使用
+4、$group分组，一般结合$sum $max $avg $min
+{$sum:1} 统计该组有多少文档
+{$sum:"$copies"}对于组内的copies字段进行累加
+
+db.books.aggregate([{$group:{_id:"$author"}}])
+
+db.books.aggregate([{$group:{_id:"$author",totalCopy:{$sum:"$copies"}}}])分组后累加
+db.books.aggregate([{$group:{_id:"$author",totalCopy:{$max:"$copies"}}}])
+db.books.aggregate([{$group:{_id:"$author",totalCopy:{$min:"$copies"}}}])
+
+
+db.a12.insert({_id:1,name:"tom",subject:[100,80,90]})
+db.a12.insert({_id:2,name:"jerry",subject:[30,40,50]})
+db.a12.insert({_id:3,name:"jack",subject:[]})
+db.a12.aggregate([{$unwind:"$subject"}]) 旧版本
+等同于
+db.a12.aggregate([{$unwind:{path:"$subject"}}]) 新版本
+
+db.a12.aggregate([{$unwind:{path:"$subject",includeArrayIndex:"aaaa"}}]) 
+db.a12.aggregate([{$unwind:{path:"$subject",includeArrayIndex:"aaaa",
+preserveNullAndEmptyArrays:true}}]) 
+
+db.books.distinct("author") 统计指定字段唯一的值
+db.books.count({copies:{$gt:5}}) 统计符合条件的文档数量
+db.book.find().count()
+
+
+
+————————————————————————————————————————————————————
+db.chinaPop.insert({_id:1,city:"shijiazhuang",pop:100000,provice:"hebei"})
+db.chinaPop.insert({_id:2,city:"shijiazhuang",pop:500000,provice:"hebei"})
+db.chinaPop.insert({_id:3,city:"shijiazhuang",pop:300000,provice:"hebei"})
+db.chinaPop.insert({_id:11,city:"xingtai",pop:100000,provice:"hebei"})
+db.chinaPop.insert({_id:12,city:"xingtai",pop:200000,provice:"hebei"})
+db.chinaPop.insert({_id:13,city:"xingtai",pop:0,provice:"hebei"})
+
+db.chinaPop.insert({_id:21,city:"nanjing",pop:100000,provice:"jiangsu"})
+db.chinaPop.insert({_id:22,city:"nanjing",pop:200000,provice:"jiangsu"})
+db.chinaPop.insert({_id:23,city:"suzhou",pop:0,provice:"jiangsu"})
+解题思路：
+1、统计人口数量超过100万的省
+1）按照省进行分组，计算人口总和
+db.chinaPop.aggregate([{$group:{_id:"$provice",total:{$sum:"$pop"}}}])
+2）$match过滤大于1000万人口的州
+db.chinaPop.aggregate([{$group:{_id:"$provice",total:{$sum:"$pop"}}},
+{$match:{total:{$gt:100000}}}])
+2、每个省，城市拥有的平均人口数量
+1）根据省，城市分组，计算每个省，每个城市的人口总数
+db.chinaPop.aggregate([{$group:{_id:{pro:"$provice",city:"$city"},
+total:{$sum:"$pop"}}}])
+2）根据省分组，计算平均值
+db.chinaPop.aggregate([{$group:{_id:{pro:"$provice",city:"$city"},
+total:{$sum:"$pop"}}},
+{$group:{_id:"$_id.pro",cityAvg:{$avg:"$total"}}}
+])
+
+备注：计算每个城市的平均人口数量
+db.chinaPop.aggregate([{$group:{_id:{pro:"$provice",city:"$city"},
+total:{$avg:"$pop"}}}])
+
+
+3、每个省的人口最多和最少的城市
+1）根据省，城市分组，计算每个州，每个城市的人口总数
+2）按照人口总数升序
+3）根据省分组，使用$first $last找出人口最多、最少的城市，
+4）使用$project进行显示
+{state:***,biggestCity:{name:*,pop:*},smallestCity:{name:*,pop:*}}
+
+db.chinaPop.aggregate([
+{$group:{_id:{provice:"$provice",city:"$city"},totalCityPop:{$sum:"$pop"}}},
+{$sort:{totalCityPop:1}},
+{$group:{_id:"$_id.provice",
+biggestCity:{$last:"$_id.city"},
+biggestPop:{$last:"$totalCityPop"},
+smallestCity:{$first:"$_id.city"},
+smallestPop:{$first:"$totalCityPop"}
+}},
+{$project:{
+_id:0,
+state:"$_id",
+biggestCity:{name:"$biggestCity",pop:"$biggestPop"},
+smallestCity:{name:"$smallestCity",pop:"$smallestPop"}
+}}
+])
+4、统计所有的州名
+db.chinaPop.distinct("provice")
