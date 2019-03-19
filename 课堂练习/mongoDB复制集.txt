@@ -1,0 +1,56 @@
+mongod  --dbpath=p1\  --smallfiles  --port  10000  --replSet "mag"
+mongod  --dbpath=s1\  --smallfiles  --port  10001  --replSet "mag"
+
+mongod  --dbpath=s2\  --smallfiles  --port  10002  --replSet "mag"
+mongod  --dbpath=a1\  --smallfiles  --port  10003  --replSet "mag"
+如果想在从节点访问主节点同步来的数据，需要执行
+rs.slaveOk()
+
+
+mongod  --dbpath=arbiter\  --smallfiles  --port  10003  --replSet "ma" 启动后台服务
+
+mongo --port 10000 连接服务器，启动客户端
+
+主节点的priority是不允许修改的
+rs.reconfig(cfg)会报错
+
+修改配置信息，需要reconfig()才能生效
+
+mongod  --dbpath=arb1\  --smallfiles  --port  10005  --replSet "ma"
+
+把从节点变为仲裁节点：
+1、把从节点删除
+2、添加仲裁节点
+db.runCommand({create:"cap",capped:true,size:1024,max:1000})
+
+
+1主2从1仲裁
+
+1)主节点宕机，会从2个从节点选举出一个作为新的主节点
+2）从节点发生宕机，其他节点不受影响
+3）主节点宕机，从节点宕机，当有仲裁节点的情况下，剩下的从节点会成为主节点 ？？？？
+4）主节点宕机，从节点宕机，当没有仲裁节点的情况下，
+剩下的一个从节点没有办法把自己选举为主节点
+
+
+
+
+
+数据回滚
+1、主节点A集合增加5条数据，可以看到从节点B、C也增加了5条数据
+2、手动一个从节点B宕机
+3、主节点再追加一条记录。可以看到从节点C也追加了记录
+4、从节点B启动，会发现新的记录会被同步到从节点B上
+
+1、主节点A宕机
+2、从节点B增加记录
+3、主节点重新启动，新记录会被回滚到主节点上
+
+rs.方法都需要在复制集中进行操作
+
+
+
+
+
+
+
