@@ -1,0 +1,53 @@
+1、Failed connecting to host
+可能是在防火墙的问题
+2、Jedis提供了针对redis命令的API，方法名对应的是命令名
+3、正常事务
+	Transaction tra=jedis.multi();
+		tra.set("name", "tom");
+		tra.set("age", "20");
+		tra.setnx("code", "112121");
+		tra.exec();
+加锁事务
+
+当前可用额度 banlance -100
+欠款额debt +100
+实际额度actBanlance 1000
+
+watch banlance 
+if 当前可用额度>实际额度
+      unwatch()
+   return false；
+else 
+  sleep(5000)
+  multi()
+  banlance -100
+  debt +100
+  exec()
+“成功”
+ 
+从不同的配置文件启动不同的redis进程
+1、6379 主机 
+6380 从机
+6381从机
+2、如果主机宕机，从机？？
+1 复制redis.conf 三份 redis-6379.conf redis-6380.conf  redis-6381.conf
+2、修改三个配置文件五个地方
+daemonize 修改为yes
+pidfile 
+port 6379 -->6380
+logfile 
+dbfilename dump6380.rdb
+3、启动三个进程
+./redis-server /user/local/redis/etc/redis-6379.conf
+./redis-server /user/local/redis/etc/redis-6380.conf
+./redis-server /user/local/redis/etc/redis-6381.conf
+4、ps-ef|grep redis查看
+在6380客户端执行
+relicaof 127.0.0.1 6379
+在6381客户端执行
+relicaof 127.0.0.1 6379
+
+
+
+
+

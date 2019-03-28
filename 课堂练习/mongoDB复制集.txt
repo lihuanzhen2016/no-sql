@@ -48,6 +48,12 @@ db.runCommand({create:"cap",capped:true,size:1024,max:1000})
 
 rs.方法都需要在复制集中进行操作
 
+db.adminCommand( {
+    replSetStepDown: <seconds>,
+    secondaryCatchUpPeriodSecs: <seconds>,
+    force: <true|false>
+} )
+
 
 
 
