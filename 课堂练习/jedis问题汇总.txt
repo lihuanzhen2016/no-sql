@@ -31,23 +31,32 @@ else
 6381从机
 2、如果主机宕机，从机？？
 1 复制redis.conf 三份 redis-6379.conf redis-6380.conf  redis-6381.conf
+cp  redis.conf  redis-6379.conf
+cp  redis.conf  redis-6380.conf  
+cp  redis.conf  redis-6381.conf  
 2、修改三个配置文件五个地方
-daemonize 修改为yes
-pidfile 
-port 6379 -->6380
-logfile 
-dbfilename dump6380.rdb
+daemonize  no 修改为daemonize  yes
+pidfile  -->pidfile /var/run/redis_6381.pid
+port 6379 -->port 6381
+logfile --> logfile "/usr/local/redis/etc/6381.log"
+dbfilename dump6380.rdb -->dbfilename dump_6381.rdb
 3、启动三个进程
 ./redis-server /user/local/redis/etc/redis-6379.conf
 ./redis-server /user/local/redis/etc/redis-6380.conf
 ./redis-server /user/local/redis/etc/redis-6381.conf
 4、ps-ef|grep redis查看
-在6380客户端执行
-relicaof 127.0.0.1 6379
+5、在6380客户端执行
+relicaof 127.0.0.1 6379（建立主从关系）
 在6381客户端执行
 relicaof 127.0.0.1 6379
-
-
+relicaof no one解除主从关系
+或者用slaveof  127.0.0.1 6379 （建立主从关系）
+relicaof no one解除主从关系
+linux Vim命令
+/logfile 查找 ，n下一个
+输入i  进入编辑模式 
+esc键退出编辑模式
+：wq 保存  ：q!退出不保存
 
 
 

@@ -1,0 +1,12 @@
+1、no-sql
+http://naotu.baidu.com/file/b21cb1ec651a9284b203b1c7d48952a0?token=1ad35c1673d7d055
+2、mongoDB数据类型，更新查询
+http://naotu.baidu.com/file/72746ed4af29971b9bf929b978fab479?token=fd14b51712b358b1
+3、mongoDB权限与索引
+http://naotu.baidu.com/file/014a83bb0d522ed7938c7c015186a01f?token=197acb30e8ccc996
+4、mongoDB复制与分片
+http://naotu.baidu.com/file/b548b350d9f1f7d73b5a5cf488c6e8b0?token=be4bc9ecb53454e1
+5、redis---1
+http://naotu.baidu.com/file/3734e36410e97ba939ad5d8f6679d219?token=06ae20a9e330ebb7
+6、redis-2
+http://naotu.baidu.com/file/2ba667e0773117c14c475fc971be73ea?token=be9e71cd241085ab
